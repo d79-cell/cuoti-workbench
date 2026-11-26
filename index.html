@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>错题工作台 · 手机版</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css" />
+<style>
+:root {
+  --paper: #fffef5;
+  --ink: #2c2c2c;
+  --muted: #6f6f68;
+  --rule: #d9e9f0;
+  --red: #d9483f;
+  --red-soft: #fce9e5;
+  --orange: #c9792e;
+  --yellow: #ffd93d;
+  --dash: #b9b1a2;
+  --font-display: "STKaiti", "KaiTi", "楷体", "Noto Serif SC", serif;
+  --font-body: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0; padding: 0 0 calc(78px + env(safe-area-inset-bottom));
+  color: var(--ink); font: 15px/1.72 var(--font-body);
+  background: repeating-linear-gradient(0deg, transparent 0 31px, var(--rule) 31px 32px), var(--paper);
+}
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .08;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+}
+.app { position: relative; z-index: 1; }
+header {
+  position: sticky; top: 0; z-index: 10; padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+  background: rgba(255,254,245,.94); border-bottom: 2px dashed var(--dash); backdrop-filter: blur(6px);
+}
+.hrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { margin: 0; font: 700 23px/1.25 var(--font-display); color: var(--red); letter-spacing: .04em; transform: rotate(-.5deg); }
+select, button { font: inherit; color: inherit; }
+select {
+  border: 2px dashed var(--dash); border-radius: 6px; background: #fff; padding: 8px 10px; min-height: 44px;
+}
+.sub { margin-top: 6px; font: 12px/1.5 var(--font-display); color: var(--muted); }
+main { padding: 16px 14px 24px; }
+.card {
+  background: rgba(255,255,255,.94); border: 2px dashed var(--dash); border-radius: 6px;
+  padding: 16px 14px; margin-bottom: 16px; box-shadow: 0 6px 18px rgba(80,60,40,.12);
+}
+.card:nth-child(even) { transform: rotate(.12deg); }
+.card h2 {
+  margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px dashed var(--dash);
+  font: 700 18px/1.4 var(--font-display); display: inline-block;
+  background: linear-gradient(transparent 62%, rgba(255,217,61,.55) 62%);
+}
+.cal { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 8px; scroll-snap-type: x mandatory; }
+.day {
+  flex: 0 0 116px; min-height: 126px; scroll-snap-align: start; background: #fff;
+  border: 1px dashed #d8cfbe; border-radius: 4px; padding: 10px; box-shadow: 0 5px 14px rgba(80,60,40,.12);
+}
+.day.today { border: 2px dashed var(--red); background: rgba(255,217,61,.16); }
+.day.has { border-left: 4px solid var(--orange); }
+.day .dh { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px dashed #ddd3c2; padding-bottom: 6px; margin-bottom: 8px; }
+.day .dh b { font: 700 16px/1.2 var(--font-display); }
+.day .dh span { font: 12px/1.2 var(--font-display); color: var(--muted); }
+.day .task { font: 700 15px/1.35 var(--font-display); color: var(--red); }
+.day .range { margin-top: 6px; font-size: 11px; line-height: 1.45; word-break: break-all; color: var(--ink); }
+.day .late { margin-top: 5px; font: 12px/1.3 var(--font-display); color: var(--red); }
+.empty { color: var(--muted); font-size: 13px; padding: 10px 0; }
+.daygroup { margin-top: 14px; }
+.daygroup h3 { margin: 0 0 10px; font: 700 16px/1.4 var(--font-display); color: var(--orange); }
+.item { position: relative; background: #fff; border: 1px dashed #d8cfbe; border-radius: 4px; padding: 14px 14px 12px; margin-bottom: 14px; box-shadow: 0 6px 16px rgba(80,60,40,.12); }
+.item::before {
+  content: ""; position: absolute; top: -7px; left: -7px; width: 15px; height: 15px; border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ffb3a7 0 24%, #d9483f 25% 68%, #8f2f2f 69% 100%);
+  border: 1px solid #8f2f2f; box-shadow: 0 2px 3px rgba(80,40,30,.3);
+}
+.no { font: 700 15px/1.4 var(--font-display); letter-spacing: .03em; }
+.meta { margin-top: 5px; font-size: 11px; color: var(--muted); }
+.q { margin: 10px 0; padding: 12px; background: #fff; border: 1px dashed #ddd3c2; border-radius: 4px; line-height: 1.75; }
+.q img { display: block; max-width: 100%; height: auto; margin: 8px auto 0; }
+.thumb { width: 100%; max-height: 180px; object-fit: contain; border: 0; }
+details { margin-top: 8px; border-top: 1px dashed #ddd3c2; padding-top: 8px; }
+summary { cursor: pointer; font: 700 14px/1.5 var(--font-display); color: var(--orange); min-height: 44px; }
+.ans { margin-top: 6px; line-height: 1.8; }
+.actions { display: flex; gap: 10px; margin-top: 12px; }
+button.act {
+  flex: 1; min-height: 46px; border: 2px dashed var(--orange); border-radius: 5px;
+  background: #fff; font-weight: 700; box-shadow: 0 3px 0 rgba(201,121,46,.45);
+}
+button.act.primary { background: var(--red); border-color: #a83b3b; color: #fff; box-shadow: 0 3px 0 #8f2f2f; }
+button.act:active { transform: translateY(2px); box-shadow: none; }
+.done { color: var(--muted); font: 14px/1.5 var(--font-display); }
+nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex;
+  background: rgba(255,253,244,.97); border-top: 2px dashed var(--dash);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+nav button {
+  flex: 1; min-height: 58px; border: 0; background: transparent; color: var(--muted);
+  font: 700 16px/1.3 var(--font-display);
+}
+nav button.on { color: var(--red); background: rgba(255,217,61,.35); border-top: 3px solid var(--red); }
+.note { font-size: 11px; color: var(--muted); text-align: center; margin: 10px 0 0; }
+.katex { font-size: 1em; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="hrow">
+      <div>
+        <h1>错题工作台</h1>
+        <div class="sub">手机上查看计划、重做错题</div>
+      </div>
+      <select id="childSel"></select>
+    </div>
+  </header>
+  <main id="view"></main>
+  <nav>
+    <button data-view="review">复习计划</button>
+    <button data-view="wrong">错题库</button>
+  </nav>
+</div>
+<script src="vendor/katex/katex.min.js"></script>
+<script src="vendor/katex/contrib/auto-render.min.js"></script>
+<script src="data.js?v=20261126m"></script>
+<script>
+(function () {
+  var DATA = window.WORKBENCH_DATA;
+  var PROGRESS_KEY = 'cuoti.mobile.progress.v1';
+  var CHILD_KEY = 'cuoti.mobile.child.v1';
+  var progress = {};
+  try { progress = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}') || {}; } catch (e) { progress = {}; }
+  var childId = localStorage.getItem(CHILD_KEY) || 'child-g5';
+  var view = 'review';
+  var allItems = (DATA.items || []).slice().sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]; }); }
+  function p(n) { return n < 10 ? '0' + n : String(n); }
+  function dateKey(ts) { var d = new Date(ts || 0); return String(d.getFullYear()) + p(d.getMonth() + 1) + p(d.getDate()); }
+  function startOfDay(ts) { var d = new Date(ts); d.setHours(0,0,0,0); return d.getTime(); }
+  function fmtMD(ts) { var d = new Date(ts); return (d.getMonth()+1) + '/' + d.getDate(); }
+  function fmtTime(ts) { var d = new Date(ts); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+  function encPath(s) { return String(s).split('/').map(encodeURIComponent).join('/'); }
+  function itemCode(it) {
+    if (!it) return '';
+    var total = allItems.findIndex(function (x) { return x.id === it.id; }) + 1;
+    var key = dateKey(it.createdAt);
+    var same = allItems.filter(function (x) { return dateKey(x.createdAt) === key; });
+    var day = same.findIndex(function (x) { return x.id === it.id; }) + 1;
+    return key + ' 第' + day + '题 · 总第' + total + '题';
+  }
+  function rangeText(items) {
+    var v = (items || []).filter(function (x) { return x && x.id; });
+    if (!v.length) return '';
+    var f = itemCode(v[0]), l = itemCode(v[v.length-1]);
+    if (f === l) return f;
+    var a = /^(\d{8}) 第(\d+)题 · 总第(\d+)题$/.exec(f);
+    var b = /^(\d{8}) 第(\d+)题 · 总第(\d+)题$/.exec(l);
+    if (a && b && a[1] === b[1]) return a[1] + ' 第' + (a[2]===b[2]?a[2]:a[2]+'—'+b[2]) + '题 · 总第' + (a[3]===b[3]?a[3]:a[3]+'—'+b[3]) + '题';
+    return f + ' — ' + l;
+  }
+  function childNameOf(id) { var c = (DATA.children||[]).filter(function (x) { return x.id === id; })[0]; return c ? c.name : id; }
+  function myItems() { return allItems.filter(function (i) { return i.childId === childId; }).slice().reverse(); }
+  function itemMap() { var m = {}; allItems.forEach(function (i) { m[i.id] = i; }); return m; }
+  function myReviews() {
+    var m = itemMap();
+    return (DATA.reviews||[]).filter(function (r) {
+      var it = m[r.itemId] || {};
+      return (r.childId === childId || it.childId === childId) && r.status !== 'done' && !progress[r.id];
+    });
+  }
+  function imgHtml(path) {
+    if (!path) return '';
+    return '<img class="thumb" src="' + esc(encPath(path)) + '" alt="题目图片" />';
+  }
+  function renderChildren() {
+    var sel = document.getElementById('childSel');
+    sel.innerHTML = (DATA.children||[]).map(function (c) {
+      return '<option value="' + esc(c.id) + '"' + (c.id === childId ? ' selected' : '') + '>' + esc(c.name) + '</option>';
+    }).join('');
+  }
+  function calendarHtml() {
+    var today = startOfDay(Date.now());
+    var m = itemMap();
+    var week = ['日','一','二','三','四','五','六'];
+    var byDay = {};
+    myReviews().forEach(function (r) {
+      var due = r.dueAt ? startOfDay(r.dueAt) : today;
+      var day = due < today ? today : due;
+      if (!byDay[day]) byDay[day] = [];
+      byDay[day].push(r);
+    });
+    var h = '<div class="card"><h2>未来7天重做日历</h2><div class="cal">';
+    for (var i=0;i<7;i++) {
+      var day = today + i*86400000;
+      var d = new Date(day);
+      var rs = byDay[day] || [];
+      rs.sort(function (a, b) {
+        var ia = m[a.itemId] || {}, ib = m[b.itemId] || {};
+        return (ia.createdAt || 0) - (ib.createdAt || 0) || String(ia.id).localeCompare(String(ib.id));
+      });
+      var late = rs.filter(function (r) { return r.dueAt && startOfDay(r.dueAt) < today; }).length;
+      h += '<div class="day' + (i===0?' today':'') + (rs.length?' has':'') + '">' +
+        '<div class="dh"><b>' + fmtMD(day) + '</b><span>' + (i===0?'今天':'周'+week[d.getDay()]) + '</span></div>' +
+        (rs.length ? '<div class="task">重做'+rs.length+'题</div><div class="range">' + esc(rangeText(rs.map(function(r){ return itemMap()[r.itemId] || {}; }))) + '</div>' + (late?'<div class="late">含顺延'+late+'题</div>':'') : '<div class="range">无重做</div>') +
+        '</div>';
+    }
+    return h + '</div></div>';
+  }
+  function reviewHtml() {
+    var today = startOfDay(Date.now());
+    var m = itemMap();
+    var rs = myReviews().slice().sort(function (a,b) { return (a.dueAt||0)-(b.dueAt||0); });
+    var h = calendarHtml() + '<div class="card"><h2>待重做题目</h2>';
+    if (!rs.length) { h += '<div class="empty">这一周没有待重做的题。</div>'; }
+    var groups = {};
+    rs.forEach(function (r) {
+      var due = r.dueAt ? startOfDay(r.dueAt) : today;
+      var day = due < today ? today : due;
+      if (!groups[day]) groups[day] = [];
+      groups[day].push(r);
+    });
+    Object.keys(groups).sort(function(a,b){ return Number(a)-Number(b); }).forEach(function (day) {
+      h += '<div class="daygroup"><h3>' + (Number(day)===today?'今天（含顺延）':fmtMD(Number(day))) + '</h3>';
+      groups[day].forEach(function (r) {
+        var it = m[r.itemId] || {};
+        h += '<div class="item"><div class="no">' + esc(itemCode(it)) + '</div>' +
+          '<div class="meta">' + esc(it.source||'') + ' · 第 ' + esc(r.stage) + ' 天</div>' +
+          '<div class="q">' + esc(it.question||'') + (it.figure ? imgHtml(it.figure) : '') + '</div>';
+        h += '<details><summary>看答案</summary><div class="ans">' + esc(it.answer||'') + '</div></details>' +
+          '<div class="actions"><button class="act" data-act="wrong" data-id="' + esc(r.id) + '">做错</button>' +
+          '<button class="act primary" data-act="correct" data-id="' + esc(r.id) + '">做对</button></div></div>';
+      });
+      h += '</div>';
+    });
+    return h + '<p class="note">手机上的复习标记只保存在本机，不与电脑版互通。</p></div>';
+  }
+  function wrongHtml() {
+    var list = myItems();
+    var h = '<div class="card"><h2>错题库 · ' + list.length + ' 道</h2>';
+    if (!list.length) return h + '<div class="empty">暂无错题。</div></div>';
+    list.forEach(function (it) {
+      var imgs = [it.figure, (DATA.submissions||[]).filter(function(s){ return s.itemId===it.id; })[0] && (DATA.submissions||[]).filter(function(s){ return s.itemId===it.id; })[0].images && (DATA.submissions||[]).filter(function(s){ return s.itemId===it.id; })[0].images[0]].filter(Boolean);
+      h += '<div class="item"><div class="no">' + esc(itemCode(it)) + '</div>' +
+        '<div class="meta">' + esc(it.subject||'') + ' · ' + esc(it.source||'') + ' · ' + esc(fmtTime(it.createdAt)) + '</div>' +
+        '<div class="q">' + esc(it.question||'') + (it.figure ? imgHtml(it.figure) : '') + '</div>' +
+        (imgs.length > 1 ? '<details><summary>看原图</summary>' + imgs.map(imgHtml).join('') + '</details>' : '') +
+        '<details><summary>看答案</summary><div class="ans">' + esc(it.answer||'') + '</div></details></div>';
+    });
+    return h + '</div>';
+  }
+  function render() {
+    renderChildren();
+    document.getElementById('view').innerHTML = view === 'review' ? reviewHtml() : wrongHtml();
+    Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (b) { b.classList.toggle('on', b.getAttribute('data-view') === view); });
+    if (window.renderMathInElement) {
+      renderMathInElement(document.getElementById('view'), { delimiters: [{left:'$',right:'$',display:false}], throwOnError:false });
+    }
+  }
+  document.getElementById('childSel').addEventListener('change', function (e) { childId = e.target.value; localStorage.setItem(CHILD_KEY, childId); render(); });
+  Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (b) {
+    b.addEventListener('click', function () { view = b.getAttribute('data-view'); render(); window.scrollTo(0,0); });
+  });
+  document.getElementById('view').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-act]');
+    if (!b) return;
+    progress[b.getAttribute('data-id')] = b.getAttribute('data-act');
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>
